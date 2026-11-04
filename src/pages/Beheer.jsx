@@ -56,6 +56,7 @@ function Overzicht({ email }) {
   const [fout, setFout] = useState('')
   const [run, setRun] = useState(null) // { commit, wat, slug }
   const [nieuw, setNieuw] = useState(false)
+  const [indelen, setIndelen] = useState(false)
 
   async function laden() {
     setFout('')
@@ -82,9 +83,13 @@ function Overzicht({ email }) {
       <p className="b-uitleg">Een nieuwe versie van een Word-bestand kiezen vervangt de handleiding op de site. Het versienummer
         gaat vanzelf omhoog; oude versies blijven in de geschiedenis op GitHub. Na elke wijziging duurt het ongeveer 2 minuten
         voordat de site bijgewerkt is.</p>
-      <p><button type="button" className="b-knop" onClick={() => setNieuw(!nieuw)}>{nieuw ? 'Annuleren' : '+ Nieuwe handleiding'}</button></p>
+      <p className="b-acties">
+        <button type="button" className="b-knop" disabled={indelen} onClick={() => setNieuw(!nieuw)}>{nieuw ? 'Annuleren' : '+ Nieuwe handleiding'}</button>
+        <button type="button" className="b-knop b-licht" disabled={nieuw} onClick={() => setIndelen(!indelen)}>{indelen ? 'Annuleren' : 'Indeling aanpassen'}</button>
+      </p>
       {nieuw && <Nieuw stand={stand} bewaar={bewaarCatalogus} klaar={(r) => { setNieuw(false); if (r) { setRun(r); laden() } }} />}
-      {stand.catalogus.groepen.map((g, gi) => (
+      {indelen ? <Indelen catalogus={stand.catalogus} bewaar={bewaarCatalogus} klaar={() => setIndelen(false)} />
+      : stand.catalogus.groepen.map((g, gi) => (
         <section key={g.titel} className="b-groep">
           <h2>{g.titel}</h2>
           {g.items.map((it, ii) => (
@@ -101,6 +106,92 @@ function Overzicht({ email }) {
       ))}
       <Logboek />
     </>
+  )
+}
+
+// Volgorde van groepen en handleidingen aanpassen: slepen, of met de pijltjes en de keuzelijst (telefoon, toetsenbord).
+// Pas bij "Opslaan" gaat de nieuwe catalogus in één keer naar GitHub.
+function Indelen({ catalogus, bewaar, klaar }) {
+  const [cat, setCat] = useState(() => structuredClone(catalogus))
+  const [sleep, setSleep] = useState(null) // { soort: 'groep', gi } of { soort: 'item', gi, ii }
+  const [bezig, setBezig] = useState(false)
+  const [fout, setFout] = useState('')
+  const veranderd = JSON.stringify(cat) !== JSON.stringify(catalogus)
+
+  // "naar" is de plek waar het vóór komt te staan (lengte = achteraan)
+  function verplaatsGroep(van, naar) {
+    const c = structuredClone(cat)
+    const [g] = c.groepen.splice(van, 1)
+    c.groepen.splice(naar > van ? naar - 1 : naar, 0, g)
+    setCat(c)
+  }
+  function verplaatsItem({ gi, ii }, naarG, naarI) {
+    const c = structuredClone(cat)
+    const [it] = c.groepen[gi].items.splice(ii, 1)
+    c.groepen[naarG].items.splice(gi === naarG && naarI > ii ? naarI - 1 : naarI, 0, it)
+    setCat(c)
+  }
+
+  const begin = (s) => (e) => {
+    e.stopPropagation()
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', '')
+    setSleep(s)
+  }
+  const over = (soort) => (e) => { if (sleep?.soort === soort) e.preventDefault() }
+  const neer = (doel) => (e) => {
+    if (sleep?.soort !== doel.soort) return
+    e.preventDefault(); e.stopPropagation()
+    if (doel.soort === 'groep') verplaatsGroep(sleep.gi, doel.gi)
+    else verplaatsItem(sleep, doel.gi, doel.ii)
+    setSleep(null)
+  }
+
+  async function opslaan() {
+    setBezig(true); setFout('')
+    try { await bewaar(cat, 'Indeling van de handleidingen aangepast'); klaar() } catch (e) { setFout(e.message); setBezig(false) }
+  }
+
+  return (
+    <div className={`b-indelen${sleep ? ` sleept-${sleep.soort}` : ''}`}>
+      <p className="b-uitleg">Sleep een groep (aan de titel) of een handleiding naar een nieuwe plek, ook naar een andere groep.
+        Lukt slepen niet, gebruik dan de pijltjes en de keuzelijst. Klik daarna op Opslaan.</p>
+      {cat.groepen.map((g, gi) => (
+        <section key={g.titel} className={`b-groep b-vak${sleep?.soort === 'groep' && sleep.gi === gi ? ' b-sleept' : ''}`}
+          onDragOver={over('groep')} onDrop={neer({ soort: 'groep', gi })}>
+          <h2 className="b-greep" draggable onDragStart={begin({ soort: 'groep', gi })} onDragEnd={() => setSleep(null)}>
+            <span aria-hidden="true">⠿</span> {g.titel}
+            <span className="b-pijlen">
+              <button type="button" className="b-knop b-licht" aria-label={`${g.titel} omhoog`} disabled={gi === 0} onClick={() => verplaatsGroep(gi, gi - 1)}>↑</button>
+              <button type="button" className="b-knop b-licht" aria-label={`${g.titel} omlaag`} disabled={gi === cat.groepen.length - 1} onClick={() => verplaatsGroep(gi, gi + 2)}>↓</button>
+            </span>
+          </h2>
+          {g.items.map((it, ii) => (
+            <div key={it.slug} className={`b-rij b-greep b-item${sleep?.soort === 'item' && sleep.gi === gi && sleep.ii === ii ? ' b-sleept' : ''}`}
+              draggable onDragStart={begin({ soort: 'item', gi, ii })} onDragEnd={() => setSleep(null)}
+              onDragOver={over('item')} onDrop={neer({ soort: 'item', gi, ii })}>
+              <span><span aria-hidden="true">⠿</span> <b>{it.titel}</b></span>
+              <span className="b-pijlen">
+                <button type="button" className="b-knop b-licht" aria-label={`${it.titel} omhoog`} disabled={ii === 0} onClick={() => verplaatsItem({ gi, ii }, gi, ii - 1)}>↑</button>
+                <button type="button" className="b-knop b-licht" aria-label={`${it.titel} omlaag`} disabled={ii === g.items.length - 1} onClick={() => verplaatsItem({ gi, ii }, gi, ii + 2)}>↓</button>
+                <select value={gi} aria-label={`Groep van ${it.titel}`} onChange={(e) => verplaatsItem({ gi, ii }, +e.target.value, cat.groepen[+e.target.value].items.length)}>
+                  {cat.groepen.map((x, i) => <option key={x.titel} value={i}>{x.titel}</option>)}
+                </select>
+              </span>
+            </div>
+          ))}
+          <div className="b-plek" onDragOver={over('item')} onDrop={neer({ soort: 'item', gi, ii: g.items.length })}>
+            {g.items.length ? 'Hierheen slepen om achteraan te zetten' : 'Lege groep: sleep hier een handleiding in'}
+          </div>
+        </section>
+      ))}
+      <div className="b-plek b-plek-groep" onDragOver={over('groep')} onDrop={neer({ soort: 'groep', gi: cat.groepen.length })}>Groep hierheen slepen om onderaan te zetten</div>
+      {fout && <p className="slot-fout" role="alert">{fout}</p>}
+      <p className="b-acties">
+        <button type="button" className="b-knop" disabled={!veranderd || bezig} onClick={opslaan}>{bezig ? 'Opslaan…' : 'Opslaan'}</button>
+        <button type="button" className="b-knop b-licht" disabled={bezig} onClick={klaar}>Annuleren</button>
+      </p>
+    </div>
   )
 }
 
