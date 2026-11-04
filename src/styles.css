@@ -462,6 +462,17 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + var(--toph) + 20px)}
 .b-rij{border:1px solid var(--line);border-radius:12px;padding:.8rem 1rem;margin:.5rem 0;background:var(--bg)}
 .b-rij-kop{display:flex;gap:1rem;justify-content:space-between;align-items:center;flex-wrap:wrap}
 .b-rij .beta{margin-left:.5rem}
+.b-vak{border:1px dashed transparent;border-radius:14px;padding:.4rem .6rem}
+.sleept-groep .b-vak{border-color:var(--line)}
+.b-greep{cursor:grab}
+.b-groep h2.b-greep{display:flex;align-items:center;gap:.5rem}
+.b-item{display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.5rem .8rem}
+.b-sleept{opacity:.45}
+.b-pijlen{display:inline-flex;gap:.3rem;align-items:center;margin-left:auto}
+.b-pijlen .b-knop{padding:.2rem .6rem;font-size:.85rem}
+.b-pijlen select{font:inherit;font-size:.85rem;padding:.25rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text)}
+.b-plek{border:2px dashed var(--line);border-radius:12px;padding:.5rem;text-align:center;color:var(--muted);font-size:.85rem;margin:.4rem 0;display:none}
+.sleept-item .b-plek:not(.b-plek-groep),.sleept-groep .b-plek-groep{display:block}
 .b-sub{display:block;color:var(--muted);font-size:.86rem;margin-top:.15rem;overflow-wrap:anywhere}
 .b-acties{display:flex;gap:.5rem;flex-wrap:wrap}
 .b-form{display:grid;gap:.7rem;margin-top:.8rem;padding:1rem;border-radius:10px;background:var(--panel)}
