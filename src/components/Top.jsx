@@ -1,5 +1,6 @@
 import { groepen } from '../catalogus.js'
 import Portals from './Portals.jsx'
+import Zoek from './Zoek.jsx'
 
 // Paarse menubalk + uitklapmenu met alle handleidingen en portals
 export default function Top({ metHoofdstukken, navOpen, setNavOpen, menuOpen, setMenuOpen }) {
@@ -9,6 +10,7 @@ export default function Top({ metHoofdstukken, navOpen, setNavOpen, menuOpen, se
         <a className="top-school" href="#/">
           <img src="img/logo-school.png" alt="Melanchthon Mavo Schiebroek, naar alle handleidingen" width="1163" height="275" />
         </a>
+        <Zoek />
         {metHoofdstukken && (
           <button className="menu" type="button" aria-controls="nav" aria-expanded={navOpen}
             onClick={() => { setNavOpen(!navOpen); setMenuOpen(false) }}>Hoofdstukken</button>
