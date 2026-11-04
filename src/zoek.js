@@ -50,7 +50,7 @@ function past(term, woord) {
 let index = null
 export function laadIndex() {
   if (index) return index
-  const tekstVan = (html) => new DOMParser().parseFromString(html, 'text/html').body.textContent.replace(/\s+/g, ' ').trim()
+  const tekstVan = (html) => new DOMParser().parseFromString(html.replace(/<\/(p|li|td|th|h\d|figcaption|div)>/g, ' $&'), 'text/html').body.textContent.replace(/\s+/g, ' ').trim()
   const items = groepen.flatMap((g) => g.items)
   index = Promise.all(items.map(async (it) => {
     const basis = { slug: it.slug, handleiding: it.titel, icoon: it.icoon }
