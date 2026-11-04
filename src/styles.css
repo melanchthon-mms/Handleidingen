@@ -377,6 +377,42 @@ img.ti{display:block;max-width:140px;height:auto;margin:0 auto .4rem}
 .sm-portal-grid .portal-name{overflow-wrap:normal;word-break:normal;hyphens:none}
 
 .top-sep,.top-title{display:none !important}
+
+/* zoekbalk midden in de paarse balk; breder als je erin klikt */
+.zoek{flex:1;display:flex;justify-content:center;position:relative;min-width:0}
+.zoek-veld{position:relative;width:min(300px,100%);transition:width .25s ease}
+.zoek.open .zoek-veld{width:min(520px,100%)}
+.zoek input{font:inherit;font-size:.95rem;width:100%;height:40px;padding:0 1rem 0 2.6rem;border:0;border-radius:999px;
+  background:#fff;color:#222;box-shadow:0 2px 8px rgba(0,0,0,.18);outline:none;transition:box-shadow .2s}
+.zoek input::placeholder{color:#777}
+.zoek input::-webkit-search-cancel-button{cursor:pointer}
+.zoek.open input{box-shadow:0 0 0 3px #F69320,0 4px 14px rgba(0,0,0,.25)}
+.zoek-ico{position:absolute;left:.85rem;top:50%;width:20px;height:20px;transform:translateY(-50%);fill:none;stroke:#555;stroke-width:2.2;stroke-linecap:round;pointer-events:none}
+.zoek-res{position:absolute;top:calc(100% + 10px);width:min(560px,calc(100vw - 1.5rem));max-height:min(70vh,520px);overflow:auto;
+  background:var(--bg);color:var(--text);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.28);padding:.4rem;z-index:50}
+.zoek-res ul{list-style:none;margin:0;padding:0}
+.zoek-res a{display:flex;gap:.7rem;align-items:flex-start;padding:.55rem .7rem;border-radius:10px;text-decoration:none;color:inherit}
+.zoek-res a.actief{background:var(--panel)}
+.zoek-res a>span{display:flex;flex-direction:column;gap:.15rem;min-width:0}
+.zoek-res b{font-size:.95rem;color:var(--head)}
+.zoek-res small{font-size:.82rem;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.zoek-pijl{color:#F69320}
+.zoek-leeg{margin:.6rem .8rem;color:var(--muted)}
+.zoek~.menu,.zoek~.top-menu{margin-left:0}
+@media(max-width:700px){
+  /* telefoon: alleen het vergrootglas; tikken = zoekbalk over de hele breedte */
+  .zoek{flex:0 0 40px;margin-left:auto}
+  .zoek-veld{width:40px}
+  .zoek input{padding:0 0 0 40px;color:transparent}
+  .zoek input::placeholder{color:transparent}
+  .zoek-ico{left:10px}
+  .zoek.open{position:absolute;left:.75rem;right:.75rem;top:calc(env(safe-area-inset-top,0px) + (var(--toph) - 40px)/2);z-index:30;margin:0}
+  .zoek.open .zoek-veld{width:100%}
+  .zoek.open input{padding-left:2.6rem;color:#222}
+  .zoek.open input::placeholder{color:#777}
+  .zoek-res{left:0;width:100%}
+  .zoek~.menu,.zoek~.top-menu{margin-left:.5rem}
+}
 .home-portals{margin:0 0 1.5rem}
 .home-portals ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.3rem}
 .home-portals .portal-link{flex-direction:column;justify-content:center;gap:.2rem;width:68px;min-height:52px;padding:.35rem .2rem;text-align:center;font-size:.68rem;font-weight:500;line-height:1.15}
