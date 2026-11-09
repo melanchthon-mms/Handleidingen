@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Icoon from '../components/Icoon.jsx'
 import { maakCodeblokken } from '../arduino.js'
+import { groepen } from '../catalogus.js'
+import { verfraai } from '../opmaak.js'
 
 function voegKopieerknopToe(pre) {
   const box = pre.parentElement
@@ -70,6 +72,18 @@ function Hoofdstuk({ html, extras = [] }) {
   return delen
 }
 
+// Knop rechtsonder om terug naar boven te gaan; verschijnt pas als je een stuk gescrold hebt
+function NaarBoven() {
+  const [toon, setToon] = useState(false)
+  useEffect(() => {
+    const f = () => setToon(scrollY > 1200)
+    addEventListener('scroll', f, { passive: true })
+    return () => removeEventListener('scroll', f)
+  }, [])
+  if (!toon) return null
+  return <button type="button" className="omhoog" onClick={() => scrollTo({ top: 0, behavior: 'smooth' })}>↑ Naar boven</button>
+}
+
 export default function Handleiding({ item, anker, navOpen, setNavOpen }) {
   const [data, setData] = useState(null)
   const [fout, setFout] = useState(false)
@@ -86,34 +100,43 @@ export default function Handleiding({ item, anker, navOpen, setNavOpen }) {
     return () => { weg = true }
   }, [item.slug])
 
-  useEffect(() => {
-    document.title = data ? `${data.titel} · Handleidingen` : 'Handleidingen'
+  // HTML uit de omzetter netjes maken (zie opmaak.js); "· PORT" hoort niet in de ondertitel
+  const pagina = useMemo(() => data && {
+    intro: verfraai(data.intro, { id: 'intro', titel: data.titel }).html,
+    sub: (data.sub || '').replace(/\s*·\s*PORT\b/g, ''),
+    secties: data.secties.map((s) => ({ ...s, ...verfraai(s.html, s) })),
   }, [data])
+
+  // de naam van de tegel voorop: zo heten Word 1 en Word 2 niet allebei "Schrijven met Word"
+  useEffect(() => {
+    if (!data) { document.title = 'Handleidingen'; return }
+    document.title = `${item.titel === data.titel ? data.titel : `${item.titel}: ${data.titel}`} · Handleidingen`
+  }, [data, item.titel])
 
   // na laden: naar het gekozen hoofdstuk, anders naar boven
   useEffect(() => {
-    if (!data) return
+    if (!pagina) return
     const el = anker && document.getElementById(anker)
     if (el) el.scrollIntoView()
     else if (!anker) window.scrollTo(0, 0)
-  }, [data, anker])
+  }, [pagina, anker])
 
   // Arduino-code als codeblok (oude Word-bestanden), en een kopieerknop bij elk codeblok uit stijl Code (v27)
   useEffect(() => {
-    if (!data || !mainRef.current) return
+    if (!pagina || !mainRef.current) return
     if (item.slug === 'arduino') maakCodeblokken(mainRef.current)
     mainRef.current.querySelectorAll('.code > pre').forEach(voegKopieerknopToe)
-  }, [data, item.slug])
+  }, [pagina, item.slug])
 
   // huidig hoofdstuk oplichten in het menu
   useEffect(() => {
-    if (!data || !('IntersectionObserver' in window)) return
+    if (!pagina || !('IntersectionObserver' in window)) return
     const io = new IntersectionObserver((es) => {
       for (const en of es) if (en.isIntersecting) setActief(en.target.id)
     }, { rootMargin: '-15% 0px -75% 0px' })
     document.querySelectorAll('section.ch').forEach((s) => io.observe(s))
     return () => io.disconnect()
-  }, [data])
+  }, [pagina])
 
   if (fout) {
     return (
@@ -124,40 +147,49 @@ export default function Handleiding({ item, anker, navOpen, setNavOpen }) {
       </main>
     )
   }
-  if (!data) return <main id="main" className="home"><p className="laden">Handleiding laden…</p></main>
+  if (!pagina) return <main id="main" className="home"><p className="laden">Handleiding laden…</p></main>
 
-  const { perSectie, los } = verdeelExtras(item.extras, data.secties)
-  const hoofdstukken = [...data.secties.map((s) => ({ id: s.id, titel: s.titel })), ...(los.length ? [{ id: 'uitproberen', titel: 'Uitproberen' }] : [])]
+  const { perSectie, los } = verdeelExtras(item.extras, pagina.secties)
+  const hoofdstukken = [...pagina.secties.map((s) => ({ id: s.id, titel: s.titel, koppen: s.koppen })), ...(los.length ? [{ id: 'uitproberen', titel: 'Uitproberen', koppen: [] }] : [])]
+  // volgende handleiding in dezelfde groep, voor onderaan de pagina
+  const buren = groepen.find((g) => g.titel === item.groep)?.items || []
+  const volgende = buren[buren.findIndex((it) => it.slug === item.slug) + 1]
 
   return (
     <div className="layout">
       <nav id="nav" className={`nav${navOpen ? ' open' : ''}`} aria-label="Hoofdstukken">
         <a className="back" href="#/">Alle handleidingen</a>
-        <p className="nav-t">{data.titel}</p>
+        <p className="nav-t">{item.titel}</p>
         <ol>
           {hoofdstukken.map((h) => (
             <li key={h.id}>
               <a href={`#/${item.slug}/${h.id}`} aria-current={actief === h.id ? 'true' : undefined} onClick={() => setNavOpen(false)}>{h.titel}</a>
+              {/* lang hoofdstuk: de tussenkoppen (Stap 1, Stap 2 …) erbij zolang je in dat hoofdstuk bent */}
+              {actief === h.id && h.koppen.length >= 3 && (
+                <ol>
+                  {h.koppen.map((k) => <li key={k.id}><a href={`#/${item.slug}/${k.id}`} onClick={() => setNavOpen(false)}>{k.titel}</a></li>)}
+                </ol>
+              )}
             </li>
           ))}
         </ol>
       </nav>
       <main id="main" ref={mainRef}>
         <div className="hero">
-          <p className="crumb"><a href="#/">Alle handleidingen</a> / {item.groep}</p>
+          <p className="crumb"><a href="#/">Alle handleidingen</a> / {item.groep} / {item.titel}</p>
           <div className="title">
             <Icoon naam={item.icoon} maat={56} />
             <div>
               <h1>{data.titel} {item.beta && <span className="beta">Beta</span>}</h1>
-              {data.sub && <p className="sub" dangerouslySetInnerHTML={{ __html: data.sub }} />}
+              {pagina.sub && <p className="sub" dangerouslySetInnerHTML={{ __html: pagina.sub }} />}
             </div>
           </div>
           {item.beta && (
             <aside className="beta-note"><b>Beta</b>Aan deze handleiding wordt nog gewerkt. Er kan nog iets veranderen of ontbreken. Klopt er iets niet? Zeg het tegen je docent.</aside>
           )}
-          <div dangerouslySetInnerHTML={{ __html: data.intro }} />
+          <div dangerouslySetInnerHTML={{ __html: pagina.intro }} />
         </div>
-        {data.secties.map((s) => (
+        {pagina.secties.map((s) => (
           <section id={s.id} className="ch" key={s.id}>
             <h2>{s.titel}</h2>
             <Hoofdstuk html={s.html} extras={perSectie[s.id]} />
@@ -169,7 +201,12 @@ export default function Handleiding({ item, anker, navOpen, setNavOpen }) {
             {los.map((x) => <Extra key={x.src || x.video} x={x} />)}
           </section>
         )}
+        <p className="einde">
+          <a href="#/">‹ Alle handleidingen</a>
+          {volgende && <a className="hoofd" href={`#/${volgende.slug}`}>Verder met {volgende.titel} ›</a>}
+        </p>
         <footer className="foot">Handleidingen · Melanchthon Mavo Schiebroek · versie {data.versie}</footer>
+        <NaarBoven />
       </main>
     </div>
   )
