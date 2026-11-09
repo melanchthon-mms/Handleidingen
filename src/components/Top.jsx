@@ -13,7 +13,7 @@ export default function Top({ metHoofdstukken, navOpen, setNavOpen, menuOpen, se
         <Zoek />
         {metHoofdstukken && (
           <button className="menu" type="button" aria-controls="nav" aria-expanded={navOpen}
-            onClick={() => { setNavOpen(!navOpen); setMenuOpen(false) }}>Hoofdstukken</button>
+            onClick={() => { setNavOpen(!navOpen); setMenuOpen(false) }}><span className="lang">Hoofdstukken</span><span className="kort">Inhoud</span></button>
         )}
         <button className="top-menu" type="button" aria-haspopup="true" aria-expanded={menuOpen}
           onClick={() => { setMenuOpen(!menuOpen); setNavOpen(false) }}>
