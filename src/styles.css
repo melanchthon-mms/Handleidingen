@@ -562,3 +562,11 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + var(--toph) + 20px)}
   .home-portals li{flex:none}
   .legenda li{gap:.6rem;padding:.55rem .7rem}
 }
+/* korte filmpjes die vanzelf in een lus spelen (Lusfilm in Handleiding.jsx) */
+.anim.lus{max-width:640px;margin-inline:auto}
+.lus-knop{position:relative;display:block;width:100%;padding:0;border:1px solid var(--shot-border);border-radius:12px;overflow:hidden;background:#fff;cursor:pointer}
+.anim.video .lus-knop video{display:block;width:100%;max-width:none;height:auto;aspect-ratio:1280/702;border-radius:0;background:#fff}
+.lus-play{position:absolute;inset:0;margin:auto;width:60px;height:60px;display:grid;place-items:center;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:1.5rem;padding-left:4px}
+.film-rij{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin:1rem 0 1.4rem}
+.film-rij .anim{margin:0;max-width:none}
+@media print{.anim.lus,.film-rij{display:none}}
