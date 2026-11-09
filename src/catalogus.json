@@ -5,7 +5,7 @@
       "tekst": "Handig voor elke dag op school: de wifi en je keuzes in Zermelo.",
       "items": [
         { "slug": "eduroam-wifi", "bron": "Handleiding_Eduroam-wifi", "titel": "Wifi eduroam", "tekst": "Verbinden met de school-wifi", "icoon": "wifi", "beta": true },
-        { "slug": "zermelo-go-lessen", "bron": "Handleiding_Zermelo-GO-lessen", "titel": "Zermelo: GO-lessen", "tekst": "Je GO-lessen kiezen", "icoon": "ico-zermelo.webp", "beta": true }
+        { "slug": "zermelo-go-lessen", "bron": "Handleiding_Zermelo-GO-lessen", "titel": "Zermelo: GO-lessen", "tekst": "Je GO-lessen kiezen", "icoon": "ico-zermelo.webp" }
       ]
     },
     {
