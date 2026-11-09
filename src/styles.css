@@ -524,3 +524,41 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + var(--toph) + 20px)}
 .b-status ul{margin:.4rem 0;padding-left:1.2rem;font-size:.88rem}
 .b-log{list-style:none;padding:0;margin:0;font-size:.88rem;color:var(--muted)}
 .b-log li{padding:.3rem 0;border-bottom:1px solid var(--line)}
+
+/* --- verbeterronde nov 2026 --- */
+/* tekenlijst: klein plaatje, knopnummer en uitleg op één regel (zie opmaak.js) */
+.legenda{list-style:none;margin:.6rem 0 1.2rem;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;max-width:720px}
+.legenda li{display:grid;grid-template-columns:44px auto minmax(0,1fr);gap:.8rem;align-items:center;padding:.6rem .9rem}
+.legenda li+li{border-top:1px solid var(--line)}
+.legenda-b img{display:block;width:44px;height:44px;object-fit:contain;border-radius:8px;background:#fff}
+.legenda-k .k{vertical-align:0}
+/* opmerking bij een stap: op één lijn met de staptekst */
+.mt-t>.steps+p{margin:-.3rem 0 1rem 2.4rem;font-size:.95rem}
+.mt-m .shot.tel{max-width:210px}
+/* tussenkoppen van het hoofdstuk waar je bent, in het hoofdstukkenmenu */
+.nav ol ol{margin:.15rem 0 .4rem .9rem;padding-left:.3rem;border-left:2px solid var(--line)}
+.nav ol ol a{font-size:.86rem;padding:.28rem .6rem;color:var(--muted)}
+/* onderaan de handleiding en de knop naar boven */
+.einde{display:flex;flex-wrap:wrap;gap:.6rem;margin:2.5rem 0 0}
+.einde a{display:inline-flex;align-items:center;padding:.6rem 1.1rem;border-radius:999px;background:var(--panel);color:var(--text);text-decoration:none;font-weight:600}
+.einde a.hoofd{background:#62256C;color:#fff}
+.einde a:hover{filter:brightness(.95)}
+.omhoog{position:fixed;right:1rem;bottom:calc(env(safe-area-inset-bottom,0px) + 1rem);z-index:20;font:inherit;font-weight:700;font-size:.9rem;color:#fff;background:#62256C;border:0;border-radius:999px;padding:.6rem 1rem;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
+.melding{margin:0 0 1.2rem;padding:.7rem 1rem;border-radius:12px;background:var(--warn-bg);font-weight:600}
+.menu .kort{display:none}
+@media print{.einde,.omhoog{display:none}}
+@media (max-width:700px){
+  /* balk: logo blijft leesbaar, knop Hoofdstukken wordt kort */
+  .top{gap:.5rem}
+  .top-school{flex:0 1 128px;min-width:0}
+  .top-school img{width:100%;height:auto}
+  .menu .lang{display:none}.menu .kort{display:inline}
+  .top .menu{padding:.45rem .8rem}
+  /* portals: per groep één rij die je opzij veegt, zodat de handleidingen meteen in beeld staan */
+  .home-portals{margin-bottom:1rem}
+  .home-portals .hp-h{font-size:1.25rem;margin-bottom:.1rem}
+  .home-portals ul{flex-wrap:nowrap;overflow-x:auto;padding:2px 0 .35rem;scrollbar-width:none}
+  .home-portals ul::-webkit-scrollbar{display:none}
+  .home-portals li{flex:none}
+  .legenda li{gap:.6rem;padding:.55rem .7rem}
+}
