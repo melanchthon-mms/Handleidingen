@@ -2,9 +2,10 @@ import { groepen } from '../catalogus.js'
 import Icoon from '../components/Icoon.jsx'
 import Portals from '../components/Portals.jsx'
 
-export default function Home() {
+export default function Home({ onbekend }) {
   return (
     <main className="home" id="main">
+      {onbekend && <p className="melding" role="status">Deze pagina bestaat niet (meer). Kies hieronder een handleiding of gebruik de zoekbalk.</p>}
       <Portals variant="home" />
       <div className="home-hero">
         <h1>Handleidingen</h1>
