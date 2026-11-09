@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 
 // Zelfde Supabase-project als het MOL-portaal. De publishable key is openbaar bedoeld; de rechten zitten in Supabase
 // (tabel hl_beheerders + Edge Function handleidingen-beheer). Eigen opslagsleutel, zodat het MOL-portaal op hetzelfde
-// adres (foefelaar010.github.io) een eigen inlog houdt.
+// domein (melanchthon.xyz) een eigen inlog houdt.
 export const supabase = createClient(
   'https://icwpaomwjwlcxzuircgh.supabase.co',
   'sb_publishable_qDFI0ZCsGam0o2rfOjvsmw_EIL52UpD',
