@@ -22,7 +22,38 @@ function voegKopieerknopToe(pre) {
   box.prepend(bar)
 }
 
+// Kort filmpje dat zich gedraagt als een gifje ("lus": true in de catalogus): speelt vanzelf, zonder geluid,
+// zolang het in beeld is. Klikken zet het stil of weer aan. Wie in Windows animaties uit heeft staan, start het zelf.
+function Lusfilm({ x }) {
+  const ref = useRef(null)
+  const [speelt, setSpeelt] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const io = new IntersectionObserver(([en]) => {
+      if (en.isIntersecting && !el.dataset.stil) el.play().catch(() => {})
+      else el.pause()
+    }, { threshold: 0.5 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  const wissel = () => {
+    const el = ref.current
+    if (el.paused) { delete el.dataset.stil; el.play().catch(() => {}) } else { el.dataset.stil = '1'; el.pause() }
+  }
+  return (
+    <figure className="anim video lus">
+      <button type="button" className="lus-knop" onClick={wissel} aria-label={`${speelt ? 'Filmpje stilzetten' : 'Filmpje afspelen'}: ${x.titel}`}>
+        <video ref={ref} src={x.video} poster={x.poster} muted loop playsInline preload="none" onPlay={() => setSpeelt(true)} onPause={() => setSpeelt(false)} />
+        {!speelt && <span className="lus-play" aria-hidden="true">▶</span>}
+      </button>
+      <figcaption>{x.titel}</figcaption>
+    </figure>
+  )
+}
+
 function Extra({ x }) {
+  if (x.video && x.lus) return <Lusfilm x={x} />
   if (x.video) {
     // filmpje zonder geluid (bijv. een timelapse): speelt pas als de leerling op afspelen klikt
     return (
@@ -54,18 +85,33 @@ function verdeelExtras(extras = [], secties) {
 }
 
 // Hoofdstuk-HTML in stukken: een extra met "bij" komt direct na de alinea met die tekst
-// (bijv. "Op de website kun je het filmpje … bekijken."), anders aan het eind van het hoofdstuk.
+// (bijv. "Op de website kun je het filmpje … bekijken."), een extra met "voor" vlak vóór de tussenkop of het blok
+// met die tekst, en anders aan het eind van het hoofdstuk. Filmpjes op dezelfde plek komen naast elkaar.
 function Hoofdstuk({ html, extras = [] }) {
-  const plekken = extras.map((x) => {
+  const plek = (x) => {
+    if (x.voor) {
+      const i = html.indexOf(x.voor)
+      const begin = i >= 0 ? Math.max(html.lastIndexOf('<h3', i), html.lastIndexOf('<aside', i)) : -1
+      if (begin >= 0) return begin
+    }
     const i = x.bij ? html.indexOf(x.bij) : -1
     const eind = i >= 0 ? html.indexOf('</p>', i) : -1
-    return { x, pos: eind >= 0 ? eind + 4 : html.length }
-  }).sort((a, b) => a.pos - b.pos)
+    return eind >= 0 ? eind + 4 : html.length
+  }
+  const plekken = []
+  for (const x of extras) {
+    const pos = plek(x)
+    const zelfde = plekken.find((p) => p.pos === pos)
+    if (zelfde) zelfde.xs.push(x)
+    else plekken.push({ pos, xs: [x] })
+  }
+  plekken.sort((a, b) => a.pos - b.pos)
   const delen = []
   let vorige = 0
-  plekken.forEach(({ x, pos }, n) => {
+  plekken.forEach(({ xs, pos }, n) => {
     if (pos > vorige) delen.push(<div key={`t${n}`} dangerouslySetInnerHTML={{ __html: html.slice(vorige, pos) }} />)
-    delen.push(<Extra key={x.src || x.video} x={x} />)
+    const films = xs.map((x) => <Extra key={x.src || x.video} x={x} />)
+    delen.push(xs.length > 1 && xs.every((x) => x.lus) ? <div className="film-rij" key={`f${n}`}>{films}</div> : films)
     vorige = pos
   })
   if (vorige < html.length) delen.push(<div key="rest" dangerouslySetInnerHTML={{ __html: html.slice(vorige) }} />)
